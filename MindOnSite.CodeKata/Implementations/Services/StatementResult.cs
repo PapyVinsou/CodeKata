@@ -1,4 +1,4 @@
-﻿namespace MindOnSite.CodeKata.Implementations
+﻿namespace MindOnSite.CodeKata.Implementations.Services
 {
     public class StatementResult
     {

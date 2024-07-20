@@ -1,16 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
+using MindOnSite.CodeKata.Share.Constants;
 using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 
-namespace MindOnSite.CodeKata.Implementations
+namespace MindOnSite.CodeKata.Implementations.Services
 {
-    /// <summary>
-    /// Implementation of a LRS client that can connect to a remote
-    /// LRS and send or query Statements.
-    /// </summary>
-    public class LrsService
+	/// <summary>
+	/// Implementation of a LRS client that can connect to a remote
+	/// LRS and send or query Statements.
+	/// </summary>
+	public class LrsService
     {
         public ILogger<LrsService> logger;
 
@@ -66,7 +67,7 @@ namespace MindOnSite.CodeKata.Implementations
             {
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    GetStatementResult = null;
+                    GetStatementResultInCache = null;
                 }
 
                 throw new InvalidOperationException($"The statement with id {id} could not be found. {response.ReasonPhrase}");
@@ -74,10 +75,10 @@ namespace MindOnSite.CodeKata.Implementations
 
             var data = await response.Content.ReadAsStringAsync();
 
-            GetStatementResult = JsonConvert.DeserializeObject<StatementResult>(data);
+            GetStatementResultInCache = JsonConvert.DeserializeObject<StatementResult>(data);
         }
 
-        public StatementResult GetStatementResult { get; set; }
+        public StatementResult GetStatementResultInCache { get; set; }
 
         /// <summary>
         /// Retrieves more statements from the same query that returned the given
@@ -88,6 +89,7 @@ namespace MindOnSite.CodeKata.Implementations
         public async Task<StatementResult> SearchStatementsAsync(SearchTypes searchTypes, string text)
         {
             string data = null;
+
             switch (searchTypes)
             {
                 case SearchTypes.TypeA:
@@ -107,7 +109,12 @@ namespace MindOnSite.CodeKata.Implementations
                     responseD.EnsureSuccessStatusCode();
                     data = await responseD.Content.ReadAsStringAsync();
                     break;
-                default:
+				case SearchTypes.TypeE:
+					var responseE = await httpClient.GetAsync($"{baseUrl}/typeE/code/kata?text={text}");
+					responseE.EnsureSuccessStatusCode();
+					data = await responseE.Content.ReadAsStringAsync();
+					break;
+				default:
                     return null;
             }
             return JsonConvert.DeserializeObject<StatementResult>(data);
